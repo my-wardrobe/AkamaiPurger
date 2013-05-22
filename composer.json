@@ -1,0 +1,11 @@
+{
+    "name": "my-wardrobe/AkamaiPurger",
+    "description": "Akamai Purger",
+    "minimum-stability": "dev",
+    "authors": [
+        {
+            "name": "my-wardrobe",
+            "email": "sysadmin@my-wardrobe.com"
+        }
+    ]
+}
