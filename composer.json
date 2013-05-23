@@ -7,5 +7,13 @@
             "name": "my-wardrobe",
             "email": "sysadmin@my-wardrobe.com"
         }
-    ]
+    ],
+    "autoload": {
+        "psr-0": {
+            "": "src/"
+        }
+    },
+    "require": {
+        "monolog/monolog": "dev-master"
+    }
 }

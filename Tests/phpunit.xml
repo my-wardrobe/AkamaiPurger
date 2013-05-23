@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<phpunit
+        backupGlobals="false"
+        backupStaticAttributes="false"
+        colors="true"
+        convertErrorsToExceptions="false"
+        convertNoticesToExceptions="false"
+        convertWarningsToExceptions="false"
+        processIsolation="false"
+        stopOnFailure="false"
+        syntaxCheck="false"
+        bootstrap="bootstrap.php">
+
+    <testsuites>
+        <testsuite name="my-image-management">
+            <directory>Cdn</directory>
+        </testsuite>
+    </testsuites>
+
+    <filter>
+        <whitelist>
+            <directory suffix=".php">src/Mw</directory>
+            <exclude>
+                <directory suffix=".php">Tests</directory>
+            </exclude>
+        </whitelist>
+    </filter>
+
+</phpunit>
