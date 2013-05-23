@@ -2,8 +2,8 @@
 
 namespace Mw\Cdn;
 
+use Monolog\Logger;
 use Mw\Cdn\Exception\MaximumFileException;
-use Mw\Service\Logger\LoggerFactory;
 
 /**
  * Class Purger
@@ -18,61 +18,105 @@ use Mw\Service\Logger\LoggerFactory;
  */
 class Purger
 {
-    /** @var string */
+    /**
+     * @var string
+     */
     protected $server = 'https://ccuapi.akamai.com/ccuapi-axis.wsdl';
 
-    /** @var null|string */
-    protected $user = 'mywardrobe';
+    /**
+     * @var string
+     */
+    protected $user;
 
-    /** @var string */
-    protected $password = '5F#8M6{3x3^&9cb';
+    /**
+     * @var string
+     */
+    protected $password;
 
-    /** @var string */
+    /**
+     * @var string
+     */
     protected $action = 'invalidate';
 
-    /** @var string */
+    /**
+     * @var string
+     */
     protected $domain = 'production';
 
-    /** @var string */
+    /**
+     * @var string
+     */
     protected $type = 'arl';
 
-    /** @var string */
+    /**
+     * @var string
+     */
     protected $notificationEmail;
 
-    /** @var array */
+    /**
+     * @var array
+     */
     protected $urls = array();
 
-    /** @var SoapClient */
+    /**
+     * @var \SoapClient
+     */
     protected $client;
 
-    /** @var array */
+    /**
+     * @var array
+     */
     protected $response;
 
-    /** @var string */
+    /**
+     * @var string
+     */
     protected $error;
 
     /**
-     * @var \Monolog\Logger
+     * @var Logger
      */
     protected $logger;
 
     /**
      * Constructor
      *
-     * @param string $user
-     * @param string $password
+     * @param string $user     Akamai Username
+     * @param string $password Akamai password
+     * @param string $server   Akamai wsdl server url
+     * @param Logger $logger   Monolog logger
      */
-    public function __construct($user = null, $password = null)
+    public function __construct($user = null, $password = null, $server = null, Logger $logger = null)
     {
-        $this->logger = LoggerFactory::getLogger('cdn_purger');
+        if (!is_null($logger)) {
+            $this->logger = new Logger('akamai_purger');
+        }
 
-        if (null !== $user) {
+        if (!is_null($server)) {
+            $this->server = $server;
+        }
+
+        if (!is_null($user)) {
             $this->user = $user;
         }
 
-        if (null !== $password) {
-            $this->user = $password;
+        if (!is_null($password)) {
+            $this->password = $password;
         }
+    }
+
+    /**
+     * Set Logger
+     *
+     * @param Logger $logger
+     *
+     * @return Purger
+     */
+    public function setLogger(Logger $logger)
+    {
+        $this->logger = $logger;
+
+        return $this;
     }
 
     /**
@@ -188,7 +232,7 @@ class Purger
                 default:
                     $this->logger->error(json_encode($this->response));
             }
-        } catch(\SoapFault $e) {
+        } catch (\SoapFault $e) {
             $this->logger->info(json_encode(array('error' => $e->getMessage(), 'code' => $e->getCode())));
         }
 
