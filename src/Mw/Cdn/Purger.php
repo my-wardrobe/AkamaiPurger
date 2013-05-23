@@ -86,22 +86,17 @@ class Purger
      * @param string $server   Akamai wsdl server url
      * @param Logger $logger   Monolog logger
      */
-    public function __construct($user = null, $password = null, $server = null, Logger $logger = null)
+    public function __construct($user, $password, $server = null, Logger $logger = null)
     {
+        $this->user = $user;
+        $this->password = $password;
+
         if (!is_null($logger)) {
             $this->logger = new Logger('akamai_purger');
         }
 
         if (!is_null($server)) {
             $this->server = $server;
-        }
-
-        if (!is_null($user)) {
-            $this->user = $user;
-        }
-
-        if (!is_null($password)) {
-            $this->password = $password;
         }
     }
 
