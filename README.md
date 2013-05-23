@@ -1,6 +1,8 @@
 Akamai Purger
 =======================
 
+[![Build Status](https://secure.travis-ci.org/my-wardrobe/AkamaiPurger.png?branch=master)](https://travis-ci.org/my-wardrobe/AkamaiPurger)
+
 Usage
 -----
 
