@@ -91,11 +91,11 @@ class Purger
         $this->user = $user;
         $this->password = $password;
 
-        if (!is_null($logger)) {
+        if (is_null($logger)) {
             $this->logger = new Logger('akamai_purger');
         }
 
-        if (!is_null($server)) {
+        if (is_null($server)) {
             $this->server = $server;
         }
     }
