@@ -93,9 +93,11 @@ class Purger
 
         if (is_null($logger)) {
             $this->logger = new Logger('akamai_purger');
+        } else {
+            $this->logger = $logger;
         }
 
-        if (is_null($server)) {
+        if (!is_null($server)) {
             $this->server = $server;
         }
     }
