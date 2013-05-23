@@ -1,6 +1,8 @@
 Akamai Purger
 =======================
 
+Remove or invalidate assets on your Akamai CDN.
+
 [![Build Status](https://secure.travis-ci.org/my-wardrobe/AkamaiPurger.png?branch=master)](https://travis-ci.org/my-wardrobe/AkamaiPurger)
 
 Usage
