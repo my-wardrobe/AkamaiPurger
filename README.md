@@ -23,7 +23,7 @@ Set notifications
 
 Add the url to purge
 
-    $purger->addUrl('htp://cdn11.my-wardrobe.com/images/products/9/2/928786/t_928786.jpg');
+    $purger->addUrl('http://www.example.com/acme/asset.png');
 
 And purge!
 
