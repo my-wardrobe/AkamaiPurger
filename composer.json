@@ -14,6 +14,9 @@
         }
     },
     "require": {
-        "monolog/monolog": "dev-master"
+        "monolog/monolog": "1.5.*"
+    },
+    "require-dev": {
+        "dantudor/mockfs": "dev-master"
     }
 }

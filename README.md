@@ -10,7 +10,7 @@ Usage
 
 Create the instance
 
-    $purger = new Mw\Cdn\Purger(
+    $purger = new Akamai\Cdn\Purger(
         {username is a string REQUIRED},
         {password is a string REQUIRED},
         {server is a string OPTIONAL},
@@ -38,4 +38,4 @@ Requirements
 Authors
 -------
 
-my-wardrobe - <sysadmin@my-wardrobe.com>
+My Wardrobe - <sys.admin@my-wardrobe.com>

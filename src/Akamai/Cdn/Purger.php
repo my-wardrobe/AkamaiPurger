@@ -1,19 +1,19 @@
 <?php
 
-namespace Mw\Cdn;
+namespace Akamai\Cdn;
 
 use Monolog\Logger;
-use Mw\Cdn\Exception\MaximumFileException;
+use Akamai\Cdn\Exception\MaximumFileException;
 
 /**
  * Class Purger
- * @package Mw\Cdn
+ * @package Akamai\Cdn
  *
  * @usage
- * $purger = new Mw\Cdn\Purger();
+ * $purger = new Akamai\Cdn\Purger();
  * $purger
- *     ->setNotificationEmail('sys.admin@my-wardrobe.com')
- *     ->addUrl('htp://cdn11.my-wardrobe.com/images/products/9/2/928786/t_928786.jpg')
+ *     ->setNotificationEmail('acme@exmaple.com')
+ *     ->addUrl('htp://www.example.com/acme/asset.png')
  *     ->purge();
  */
 class Purger
@@ -103,6 +103,20 @@ class Purger
     }
 
     /**
+     * Set Server
+     *
+     * @param string $wsdl
+     *
+     * @return $this
+     */
+    public function setServer($wsdl)
+    {
+        $this->server = $wsdl;
+
+        return $this;
+    }
+
+    /**
      * Set Logger
      *
      * @param Logger $logger
@@ -183,8 +197,8 @@ class Purger
     public function addUrl($url)
     {
         if (count($this->urls) == 1000) {
-            $this->logger->error(json_encode(array('error' => 'The maximium number of items that can be purge at one time is 1000')));
-            throw new MaximumFileException('The maximium number of items that can be purge at one time is 1000');
+            $this->logger->error(json_encode(array('error' => 'The maximum number of items that can be purge at one time is 1000')));
+            throw new MaximumFileException('The maximum number of items that can be purge at one time is 1000');
         }
         $this->urls[] = $url;
 

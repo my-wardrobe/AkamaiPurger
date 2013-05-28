@@ -1,30 +1,31 @@
 <?php
-/**
- * Short description file...
- *
- * Long description file (if need)...
- *
- * @package Mw\\Tests
- * @author  maurogadaleta
- * @date    23/04/2013 16:22
- */
-namespace Mw\Tests\Cdn;
 
+namespace Akamai\Tests\Cdn;
+
+use MockFs\MockFs;
 use Monolog\Logger;
-use Mw\Cdn\Purger;
+use Akamai\Cdn\Purger;
 
 /**
- * QuantcastService Wen test case
+ * Class PurgerTest
+ *
+ * @package Akamai\Tests\Cdn
  */
 class PurgerTest extends \PHPUnit_Framework_TestCase
 {
     /**
-     * @var Purger|\PHPUnit_Framework_MockObject_MockObject
+     * @var Purger
      */
     private $purger;
 
+    /**
+     * @var Logger
+     */
     private $logger;
 
+    /**
+     * Test Setters
+     */
     public function testSetters()
     {
         $this->assertSame($this->purger, $this->purger->setAction('foo'));
@@ -34,7 +35,9 @@ class PurgerTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @expectedException \Mw\Cdn\Exception\MaximumFileException
+     * Test Add Url Throws Exception
+     *
+     * @expectedException \Akamai\Cdn\Exception\MaximumFileException
      */
     public function testAddUrlThrowException()
     {
@@ -43,17 +46,31 @@ class PurgerTest extends \PHPUnit_Framework_TestCase
         }
     }
 
+    /**
+     * Test Purge
+     */
     public function testPurge()
     {
         $this->assertFalse($this->purger->purge());
     }
 
+    /**
+     * Setup
+     */
     protected function setUp()
     {
-        $this->purger = $this->getMockBuilder('Mw\Tests\Cdn\PurgerFake')
+        $this->purger = $this->getMockBuilder('Akamai\Tests\Cdn\PurgerFake')
             ->setMethods(array('foo'))
             ->disableOriginalConstructor()
             ->getMock();
+
+        $mockFs = new MockFs();
+        $mockFs->getFileSystem()->addFile(
+            'ccuapi-axis.wsdl',
+            file_get_contents(__DIR__ . '/../ccuapi-axis.wsdl'),
+            '/'
+        );
+        $this->purger->setServer('mfs://ccuapi-axis.wsdl');
 
         $this->logger = $this->getMockBuilder('\Monolog\Logger')
             ->setConstructorArgs(array('foo'))
