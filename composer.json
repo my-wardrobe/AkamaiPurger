@@ -1,6 +1,6 @@
 {
-    "name": "my-wardrobe/akamai-purger",
-    "description": "Akamai Purger",
+    "name": "akamai/purger",
+    "description": "Akamai CDN Purger",
     "minimum-stability": "dev",
     "authors": [
         {
