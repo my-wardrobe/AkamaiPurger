@@ -2,8 +2,9 @@
 
 namespace Akamai\Cdn;
 
-use Monolog\Logger;
+use Psr\Log\LoggerInterface;
 use Akamai\Cdn\Exception\MaximumFileException;
+use Akamai\Cdn\Exception\SoapFaultException;
 
 /**
  * Class Purger
@@ -81,25 +82,17 @@ class Purger
     /**
      * Constructor
      *
-     * @param string $user     Akamai Username
-     * @param string $password Akamai password
-     * @param string $server   Akamai wsdl server url
-     * @param Logger $logger   Monolog logger
+     * @param string          $user     Akamai Username
+     * @param string          $password Akamai password
+     * @param string          $server   Akamai wsdl server url
+     * @param LoggerInterface $logger   Psr Logger
      */
-    public function __construct($user, $password, $server = null, Logger $logger = null)
+    public function __construct($user, $password, $server = null, LoggerInterface $logger = null)
     {
         $this->user = $user;
         $this->password = $password;
-
-        if (is_null($logger)) {
-            $this->logger = new Logger('akamai_purger');
-        } else {
-            $this->logger = $logger;
-        }
-
-        if (!is_null($server)) {
-            $this->server = $server;
-        }
+        $this->logger = $logger;
+        $this->server = $server;
     }
 
     /**
@@ -107,7 +100,7 @@ class Purger
      *
      * @param string $wsdl
      *
-     * @return $this
+     * @return Purger
      */
     public function setServer($wsdl)
     {
@@ -119,11 +112,11 @@ class Purger
     /**
      * Set Logger
      *
-     * @param Logger $logger
+     * @param LoggerInterface $logger Psr Logger
      *
      * @return Purger
      */
-    public function setLogger(Logger $logger)
+    public function setLogger(LoggerInterface $logger)
     {
         $this->logger = $logger;
 
@@ -196,11 +189,15 @@ class Purger
      */
     public function addUrl($url)
     {
+        $this->urls[] = $url;
+
         if (count($this->urls) == 1000) {
-            $this->logger->error(json_encode(array('error' => 'The maximum number of items that can be purge at one time is 1000')));
+            if (false === is_null($this->logger)) {
+                $this->logger->error(json_encode(array('error' => 'The maximum number of items that can be purge at one time is 1000')));
+            }
+
             throw new MaximumFileException('The maximum number of items that can be purge at one time is 1000');
         }
-        $this->urls[] = $url;
 
         return $this;
     }
@@ -233,7 +230,9 @@ class Purger
         try {
             $this->response = $this->client->purgeRequest($this->user, $this->password, '', $options, $this->urls);
 
-            $this->logger->info(json_encode(array('sessionID' => $this->response->sessionID, 'options' => $options, 'urls' => $this->urls)));
+            if (false === is_null($this->logger)) {
+                $this->logger->info(json_encode(array('sessionID' => $this->response->sessionID, 'options' => $options, 'urls' => $this->urls)));
+            }
 
             switch ($this->response->resultCode) {
                 case 100:
@@ -243,8 +242,10 @@ class Purger
                 default:
                     $this->logger->error(json_encode($this->response));
             }
-        } catch (\SoapFault $e) {
-            $this->logger->info(json_encode(array('error' => $e->getMessage(), 'code' => $e->getCode())));
+        } catch (SoapFaultException $e) {
+            if (false === is_null($this->logger)) {
+                $this->logger->info(json_encode(array('error' => $e->getMessage(), 'code' => $e->getCode())));
+            }
         }
 
         return $success;
