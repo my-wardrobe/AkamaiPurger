@@ -3,8 +3,11 @@
 namespace Akamai\Cdn;
 
 use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
+use SoapClient;
 use Akamai\Cdn\Exception\MaximumFileException;
 use Akamai\Cdn\Exception\SoapFaultException;
+use Akamai\Cdn\Exception\PurgeFailureException;
 
 /**
  * Class Purger
@@ -19,10 +22,7 @@ use Akamai\Cdn\Exception\SoapFaultException;
  */
 class Purger
 {
-    /**
-     * @var string
-     */
-    protected $server = 'https://ccuapi.akamai.com/ccuapi-axis.wsdl';
+    const MAX_PURGE_URLS = 1000;
 
     /**
      * @var string
@@ -37,12 +37,17 @@ class Purger
     /**
      * @var string
      */
+    protected $wsdl = 'https://ccuapi.akamai.com/ccuapi-axis.wsdl';
+
+    /**
+     * @var string
+     */
     protected $action = 'invalidate';
 
     /**
      * @var string
      */
-    protected $domain = 'production';
+    protected $domain = 'staging';
 
     /**
      * @var string
@@ -50,9 +55,9 @@ class Purger
     protected $type = 'arl';
 
     /**
-     * @var string
+     * @var array
      */
-    protected $notificationEmail;
+    protected $notificationEmails = array();
 
     /**
      * @var array
@@ -60,7 +65,7 @@ class Purger
     protected $urls = array();
 
     /**
-     * @var \SoapClient
+     * @var SoapClient
      */
     protected $client;
 
@@ -84,43 +89,47 @@ class Purger
      *
      * @param string          $user     Akamai Username
      * @param string          $password Akamai password
-     * @param string          $server   Akamai wsdl server url
+     * @param string          $wsdl     Akamai wsdl url
      * @param LoggerInterface $logger   Psr Logger
      */
-    public function __construct($user, $password, $server = null, LoggerInterface $logger = null)
+    public function __construct($user, $password, $wsdl = null, LoggerInterface $logger = null)
     {
         $this->user = $user;
         $this->password = $password;
+
+        if (false === is_null($wsdl)) {
+            $this->wsdl = $wsdl;
+        }
+
         $this->logger = $logger;
-        $this->server = $server;
+
+        if (true === is_null($logger)) {
+            $this->logger = new NullLogger();
+        }
     }
 
     /**
-     * Set Server
+     * Set WSDL
      *
      * @param string $wsdl
      *
      * @return Purger
      */
-    public function setServer($wsdl)
+    public function setWsdl($wsdl)
     {
-        $this->server = $wsdl;
+        $this->wsdl = $wsdl;
 
         return $this;
     }
 
     /**
-     * Set Logger
+     * Get WSDL
      *
-     * @param LoggerInterface $logger Psr Logger
-     *
-     * @return Purger
+     * @return null|string
      */
-    public function setLogger(LoggerInterface $logger)
+    public function getWsdl()
     {
-        $this->logger = $logger;
-
-        return $this;
+        return $this->wsdl;
     }
 
     /**
@@ -138,6 +147,16 @@ class Purger
     }
 
     /**
+     * Get Action
+     *
+     * @return null|string
+     */
+    public function getAction()
+    {
+        return $this->action;
+    }
+
+    /**
      * Set Domain
      *
      * @param string $domain
@@ -149,6 +168,16 @@ class Purger
         $this->domain = $domain;
 
         return $this;
+    }
+
+    /**
+     * Get Domain
+     *
+     * @return string
+     */
+    public function getDomain()
+    {
+        return $this->domain;
     }
 
     /**
@@ -166,17 +195,37 @@ class Purger
     }
 
     /**
-     * Set Notification Email
+     * Get Type
+     *
+     * @return string
+     */
+    public function getType()
+    {
+        return $this->type;
+    }
+
+    /**
+     * Add Notification Email
      *
      * @param string $email
      *
      * @return Purger
      */
-    public function setNotificationEmail($email)
+    public function addNotificationEmail($email)
     {
-        $this->notificationEmail = $email;
+        $this->notificationEmails[] = $email;
 
         return $this;
+    }
+
+    /**
+     * Get Notification Emails
+     *
+     * @return array
+     */
+    public function getNotificationEmails()
+    {
+        return $this->notificationEmails;
     }
 
     /**
@@ -191,15 +240,69 @@ class Purger
     {
         $this->urls[] = $url;
 
-        if (count($this->urls) == 1000) {
-            if (false === is_null($this->logger)) {
-                $this->logger->error(json_encode(array('error' => 'The maximum number of items that can be purge at one time is 1000')));
-            }
+        if (self::MAX_PURGE_URLS === count($this->urls)) {
+            $this->logger->error(json_encode(array('error' => 'The maximum number of items that can be purge at one time is 1000')));
 
             throw new MaximumFileException('The maximum number of items that can be purge at one time is 1000');
         }
 
         return $this;
+    }
+
+    /**
+     * Get URLs
+     *
+     * @return array
+     */
+    public function getUrls()
+    {
+        return $this->urls;
+    }
+
+    /**
+     * Set Logger
+     *
+     * @param LoggerInterface $logger Psr Logger
+     *
+     * @return Purger
+     */
+    public function setLogger(LoggerInterface $logger)
+    {
+        $this->logger = $logger;
+
+        return $this;
+    }
+
+    /**
+     * Set Client
+     *
+     * @param SoapClient $client Soap Client
+     *
+     * @return Purger
+     */
+    public function setClient(SoapClient $client)
+    {
+        $this->client = $client;
+
+        return $this;
+    }
+
+    /**
+     * Get Client
+     *
+     * @return SoapClient
+     */
+    public function getClient()
+    {
+        if (null === $this->client) {
+            $this->client = new SoapClient($this->wsdl, array(
+                'trace' => 1,
+                'exceptions' => 1,
+                'features' => SOAP_USE_XSI_ARRAY_TYPE
+            ));
+        }
+
+        return $this->client;
     }
 
     /**
@@ -209,45 +312,45 @@ class Purger
      */
     public function purge()
     {
-        $success = false;
+        $options = $this->compileOptions();
 
-        $this->client = new \SoapClient($this->server, array(
-            'trace' => 1,
-            'exceptions' => 1,
-            'features' => SOAP_USE_XSI_ARRAY_TYPE
-        ));
+        try {
+            $this->response = $this->client->purgeRequest($this->user, $this->password, '', $options, $this->urls);
+            $this->logger->info(json_encode(array('sessionID' => $this->response->sessionID, 'options' => $options, 'urls' => $this->urls)));
 
+            switch ($this->response->resultCode) {
+                case 100:
+                    $this->logger->info(json_encode($this->response));
+                    return true;
+                    break;
+                default:
+                    $this->logger->error(json_encode($this->response));
+            }
+        } catch (SoapFaultException $e) {
+            $this->logger->info(json_encode(array('error' => $e->getMessage(), 'code' => $e->getCode())));
+            throw new PurgeFailureException($e->getMessage(), $e->getCode());
+        }
+
+        return false;
+    }
+
+    /**
+     * Compile Soap Options
+     *
+     * @return array
+     */
+    protected function compileOptions()
+    {
         $options = array(
             'action=' . $this->action,
             'domain=' . $this->domain,
             'type=' . $this->type,
         );
 
-        if (null !== $this->notificationEmail) {
-            $options[] = 'email-notification=' . $this->notificationEmail;
+        if (false === empty($this->notificationEmails)) {
+            $options[] = 'email-notification=' . implode(',', $this->notificationEmails);
         }
 
-        try {
-            $this->response = $this->client->purgeRequest($this->user, $this->password, '', $options, $this->urls);
-
-            if (false === is_null($this->logger)) {
-                $this->logger->info(json_encode(array('sessionID' => $this->response->sessionID, 'options' => $options, 'urls' => $this->urls)));
-            }
-
-            switch ($this->response->resultCode) {
-                case 100:
-                    $success = true;
-                    $this->logger->info(json_encode($this->response));
-                    break;
-                default:
-                    $this->logger->error(json_encode($this->response));
-            }
-        } catch (SoapFaultException $e) {
-            if (false === is_null($this->logger)) {
-                $this->logger->info(json_encode(array('error' => $e->getMessage(), 'code' => $e->getCode())));
-            }
-        }
-
-        return $success;
+        return $options;
     }
 }

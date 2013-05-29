@@ -13,18 +13,19 @@
         bootstrap="bootstrap.php">
 
     <testsuites>
-        <testsuite name="my-image-management">
-            <directory>Cdn</directory>
+        <testsuite name="Unit">
+            <directory>Akamai</directory>
         </testsuite>
     </testsuites>
 
     <filter>
         <whitelist>
-            <directory suffix=".php">src/Mw</directory>
-            <exclude>
-                <directory suffix=".php">Tests</directory>
-            </exclude>
+            <directory suffix=".php">../src</directory>
         </whitelist>
+        <blacklist>
+            <directory suffix=".php">../vendor</directory>
+            <directory suffix=".php">../tests</directory>
+        </blacklist>
     </filter>
 
 </phpunit>
