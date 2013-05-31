@@ -1,11 +1,11 @@
 <?php
 
-namespace Mw\Exception;
+namespace Akamai\Exception;
 
 /**
  * Class ExceptionInterface
  *
- * @package Mw\Exception
+ * @package Akamai\Exception
  */
 interface ExceptionInterface
 {

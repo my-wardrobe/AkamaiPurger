@@ -10,4 +10,4 @@ script: phpunit -c tests --coverage-text
 
 notifications:
   email:
-    - sysadmin@my-wardrobe.com
+    - sys.admin@my-wardrobe.com
