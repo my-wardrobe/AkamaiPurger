@@ -14,8 +14,9 @@ Create the instance
         {username is a string REQUIRED},
         {password is a string REQUIRED},
         {server is a string OPTIONAL},
-        {logger instance of Mongolog Logger OPTIONAL}
+        {logger instance of Monolog Logger OPTIONAL}
     );
+see Monolog documentation [here](https://github.com/Seldaek/monolog)
 
 Set notifications
 
